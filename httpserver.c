@@ -4,9 +4,70 @@
 
 #include "httpserver.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <ctype.h>
+
 #define BUFFER_SIZE 32768 // size for 32Kib;
 #define HEADER_SIZE 4000  // size for 4Kib;
 
 int main(int argc, char *argv[]) {
-    fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
+    unsigned char buffer[BUFFER_SIZE];
+    char *hostname;
+    char *port;
+
+    if (argc < 2) {
+        printf("%s\n", "Not enough args specified");
+        abort();
+    }
+
+    if (argc == 3) {
+        hostname = argv[1];
+        port = argv[2];
+    }
+
+    struct addrinfo *addrs, hints = {};
+
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    getaddrinfo(hostname, port, &hints, &addrs);
+
+    int main_socket = socket(addrs->ai_family, addrs->ai_socktype, addrs->ai_protocol);
+    int enable = 1;
+    setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+
+    if (main_socket <= 0) {
+        perror("An Error has occoured while creting a socket");
+        return 1;
+    }
+
+    if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0) {
+        perror("Cannot bind socket");
+    }
+    if (listen(main_socket, 16) < 0) {
+        perror("Cannot listen socket");
+    }
+    while (1) {
+        fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
+        memset(buffer, 0, BUFFER_SIZE);
+        int connection_fd = accept(main_socket, NULL, NULL);
+        if (connection_fd < 0) {
+            perror("In accept");
+        }
+        fprintf(stdout, ":::: Connected ::::\n");
+        int valread = read(connection_fd, buffer, BUFFER_SIZE);
+
+        if (valread < 0) {
+            perror("Error in reading socket data");
+        }
+    }
 }
