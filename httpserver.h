@@ -1,0 +1,8 @@
+//
+// Created by Sinclair Liang on 9/23/20.
+//
+
+#ifndef SIMPLEHTTPSERVER_HTTPSERVER_H
+#define SIMPLEHTTPSERVER_HTTPSERVER_H
+
+#endif //SIMPLEHTTPSERVER_HTTPSERVER_H
