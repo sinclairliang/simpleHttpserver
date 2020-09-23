@@ -16,9 +16,29 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #define BUFFER_SIZE 32768 // size for 32Kib;
 #define HEADER_SIZE 4000  // size for 4Kib;
+#define DEFAULT_PORT 8080
+
+
+bool checkValidName(char *name, uint8_t *copy_buff, int index) {
+    bool valid = true;
+    if (strlen(name) > 27) {
+        fprintf(stdout, "%s", "File Name is too long\n");
+        valid = false;
+    }
+    for (int i = 0; i < strlen(name); i++) {
+        if ((isalnum(copy_buff[index]) == 0) && (copy_buff[index] != '-') && (copy_buff[index] != '_')) {
+            fprintf(stdout, "%s", "Invalid String in Filename\n");
+            valid = false;
+        }
+        index++;
+    }
+    return valid;
+}
+
 
 int main(int argc, char *argv[]) {
     unsigned char buffer[BUFFER_SIZE];
@@ -26,7 +46,7 @@ int main(int argc, char *argv[]) {
     char *port;
 
     if (argc < 2) {
-        printf("%s\n", "Not enough args specified");
+        fprintf(stderr, "%s", "Not enough args specified\n");
         abort();
     }
 
@@ -46,7 +66,7 @@ int main(int argc, char *argv[]) {
     setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
 
     if (main_socket <= 0) {
-        perror("An Error has occoured while creting a socket");
+        perror("An Error has occurred while creating a socket");
         return 1;
     }
 
@@ -64,9 +84,9 @@ int main(int argc, char *argv[]) {
             perror("In accept");
         }
         fprintf(stdout, ":::: Connected ::::\n");
-        int valread = read(connection_fd, buffer, BUFFER_SIZE);
+        int valRead = read(connection_fd, buffer, BUFFER_SIZE);
 
-        if (valread < 0) {
+        if (valRead < 0) {
             perror("Error in reading socket data");
         }
     }
