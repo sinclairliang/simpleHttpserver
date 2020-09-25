@@ -42,10 +42,10 @@ bool checkValidName(char *name, uint8_t *copy_buff, int index) {
 int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFile) {
     unsigned char buffer[BUFFER_SIZE];
     int remainingSize = sizeofFile;
-    while(remainingSize > 0) {
+    while (remainingSize > 0) {
         memset(buffer, 0, BUFFER_SIZE);
         int readSize = read(inputFileDescriptor, buffer, BUFFER_SIZE);
-        if(readSize < 0) {
+        if (readSize < 0) {
             fprintf(stderr, "%s", "Error while reading file\n");
             return 1;
         }
