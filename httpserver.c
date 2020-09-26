@@ -58,6 +58,50 @@ bool checkValidName(char *name, uint8_t *copy_buff, int index)
     return valid;
 }
 
+void parseRequest(int *pclient, inputs *globals)
+{
+    uint8_t buff[BUFFER_SIZE + 1];
+    ssize_t bytes = recv(*pclient, buff, BUFFER_SIZE + 1, 0);
+    buff[bytes] = 0;
+    uint8_t copy_buff[BUFFER_SIZE + 1];
+    memcpy(copy_buff, buff, sizeof(buff));
+    copy_buff[bytes] = 0;
+
+    char request[10];
+    char name[300];
+    char version[10];
+    sscanf((char *)buff, "%s %s %s", request, name, version);
+    // The funny value 0644 is the permission bits of a file and these bits are only used when the file is actually created (does not exist).
+    // Using 0644 will create a file that is Read/Write for owner, and Read Only for everyone else...
+    int log = open(globals->logName, O_CREAT | O_WRONLY, 0644);
+
+    char get[4] = "GET ";
+    char head[5] = "HEAD ";
+    char put[4] = "PUT ";
+
+    char *charBuff = (char *)(buff);
+    int getReq = strncmp(charBuff, get, 4);
+    int putReq = strncmp(charBuff, put, 4);
+    int headReq = strncmp(charBuff, head, 5);
+
+    if (getReq == 0)
+    {
+        fprintf(stdout, "%s", "Get Request\n");
+
+        char *space = strstr((char *)(&copy_buff[5]), " ");
+        space[0] = '\0';
+        char *fileName;
+
+        //the name of the file provided in the request (the endpoint)
+        fileName = (char *)(&copy_buff[5]);
+
+        if (strcmp(fileName, "healthcheck") == 0)
+        {
+            fprintf(stdout, "%s\n", "dealing with healthcheck in GET");
+        }
+    }
+}
+
 int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFile)
 {
     unsigned char buffer[BUFFER_SIZE];
