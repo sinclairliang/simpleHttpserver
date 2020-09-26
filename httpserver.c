@@ -22,15 +22,34 @@
 #define HEADER_SIZE 4000  // size for 4Kib;
 #define DEFAULT_PORT 8080
 
+struct node
+{
+    struct node *next;
+    int *client_sockd;
+};
+typedef struct node node_t;
 
-bool checkValidName(char *name, uint8_t *copy_buff, int index) {
+typedef struct args
+{
+    int reqs;
+    int errors;
+    uint64_t offset;
+    bool logging;
+    char *logName;
+} inputs;
+
+bool checkValidName(char *name, uint8_t *copy_buff, int index)
+{
     bool valid = true;
-    if (strlen(name) > 27) {
+    if (strlen(name) > 27)
+    {
         fprintf(stdout, "%s", "File Name is too long\n");
         valid = false;
     }
-    for (int i = 0; i < strlen(name); i++) {
-        if ((isalnum(copy_buff[index]) == 0) && (copy_buff[index] != '-') && (copy_buff[index] != '_')) {
+    for (int i = 0; i < strlen(name); i++)
+    {
+        if ((isalnum(copy_buff[index]) == 0) && (copy_buff[index] != '-') && (copy_buff[index] != '_'))
+        {
             fprintf(stdout, "%s", "Invalid String in Filename\n");
             valid = false;
         }
@@ -39,13 +58,16 @@ bool checkValidName(char *name, uint8_t *copy_buff, int index) {
     return valid;
 }
 
-int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFile) {
+int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFile)
+{
     unsigned char buffer[BUFFER_SIZE];
     int remainingSize = sizeofFile;
-    while (remainingSize > 0) {
+    while (remainingSize > 0)
+    {
         memset(buffer, 0, BUFFER_SIZE);
         int readSize = read(inputFileDescriptor, buffer, BUFFER_SIZE);
-        if (readSize < 0) {
+        if (readSize < 0)
+        {
             fprintf(stderr, "%s", "Error while reading file\n");
             return 1;
         }
@@ -57,17 +79,20 @@ int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFil
     return 0;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     unsigned char buffer[BUFFER_SIZE];
     char *hostname;
     char *port;
 
-    if (argc < 2) {
+    if (argc < 2)
+    {
         fprintf(stderr, "%s", "Not enough args specified\n");
         abort();
     }
 
-    if (argc == 3) {
+    if (argc == 3)
+    {
         hostname = argv[1];
         port = argv[2];
     }
@@ -82,28 +107,34 @@ int main(int argc, char *argv[]) {
     int enable = 1;
     setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
 
-    if (main_socket <= 0) {
+    if (main_socket <= 0)
+    {
         perror("An Error has occurred while creating a socket");
         return 1;
     }
 
-    if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0) {
+    if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0)
+    {
         perror("Cannot bind socket");
     }
-    if (listen(main_socket, 16) < 0) {
+    if (listen(main_socket, 16) < 0)
+    {
         perror("Cannot listen socket");
     }
-    while (1) {
+    while (1)
+    {
         fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
         memset(buffer, 0, BUFFER_SIZE);
         int connection_fd = accept(main_socket, NULL, NULL);
-        if (connection_fd < 0) {
+        if (connection_fd < 0)
+        {
             perror("In accept");
         }
         fprintf(stdout, ":::: Connected ::::\n");
         int valRead = read(connection_fd, buffer, BUFFER_SIZE);
 
-        if (valRead < 0) {
+        if (valRead < 0)
+        {
             perror("Error in reading socket data");
         }
     }
