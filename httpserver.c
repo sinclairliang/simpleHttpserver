@@ -125,6 +125,16 @@ int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFil
 
 int main(int argc, char *argv[])
 {
+    int numThreads = 4;
+    inputs args;
+    args.errors = 0;
+    args.logging = false;
+    args.logName = "";
+    args.offset = 0;
+    args.reqs = 0;
+
+    
+
     unsigned char buffer[BUFFER_SIZE];
     char *hostname;
     char *port;
@@ -135,12 +145,26 @@ int main(int argc, char *argv[])
         abort();
     }
 
-    if (argc == 3)
-    {
-        hostname = argv[1];
-        port = argv[2];
-    }
 
+    int opt;
+    while ((opt = getopt(argc, argv, "N: l:")) != -1)
+    {
+        switch (opt)
+        {
+        case 'N':
+            numThreads = atoi(optarg);
+            break;
+        case 'l':
+            args.logging = true;
+            args.logName = optarg;
+            break;
+        default:
+            fprintf(stderr, "Usage: ./httpserver -N {numberofThreads} -l {filename} {ip address} {port}\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+    hostname = argv[argc - 2];
+    port = argv[argc - 1];
     struct addrinfo *addrs, hints = {};
 
     hints.ai_family = AF_INET;
@@ -155,31 +179,31 @@ int main(int argc, char *argv[])
     {
         perror("An Error has occurred while creating a socket");
         return 1;
-    }
-
-    if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0)
-    {
-        perror("Cannot bind socket");
-    }
-    if (listen(main_socket, 16) < 0)
-    {
-        perror("Cannot listen socket");
-    }
-    while (1)
-    {
-        fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
-        memset(buffer, 0, BUFFER_SIZE);
-        int connection_fd = accept(main_socket, NULL, NULL);
-        if (connection_fd < 0)
-        {
-            perror("In accept");
         }
-        fprintf(stdout, ":::: Connected ::::\n");
-        int valRead = read(connection_fd, buffer, BUFFER_SIZE);
 
-        if (valRead < 0)
+        if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0)
         {
-            perror("Error in reading socket data");
+            perror("Cannot bind socket");
+        }
+        if (listen(main_socket, 16) < 0)
+        {
+            perror("Cannot listen socket");
+        }
+        while (1)
+        {
+            fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
+            memset(buffer, 0, BUFFER_SIZE);
+            int connection_fd = accept(main_socket, NULL, NULL);
+            if (connection_fd < 0)
+            {
+                perror("In accept");
+            }
+            fprintf(stdout, ":::: Connected ::::\n");
+            int valRead = read(connection_fd, buffer, BUFFER_SIZE);
+
+            if (valRead < 0)
+            {
+                perror("Error in reading socket data");
+            }
         }
     }
-}
