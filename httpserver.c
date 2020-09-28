@@ -133,8 +133,6 @@ int main(int argc, char *argv[])
     args.offset = 0;
     args.reqs = 0;
 
-    
-
     unsigned char buffer[BUFFER_SIZE];
     char *hostname;
     char *port;
@@ -144,7 +142,6 @@ int main(int argc, char *argv[])
         fprintf(stderr, "%s", "Not enough args specified\n");
         abort();
     }
-
 
     int opt;
     while ((opt = getopt(argc, argv, "N: l:")) != -1)
@@ -179,31 +176,31 @@ int main(int argc, char *argv[])
     {
         perror("An Error has occurred while creating a socket");
         return 1;
-        }
+    }
 
-        if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0)
+    if (bind(main_socket, addrs->ai_addr, addrs->ai_addrlen) < 0)
+    {
+        perror("Cannot bind socket");
+    }
+    if (listen(main_socket, 16) < 0)
+    {
+        perror("Cannot listen socket");
+    }
+    while (1)
+    {
+        fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
+        memset(buffer, 0, BUFFER_SIZE);
+        int connection_fd = accept(main_socket, NULL, NULL);
+        if (connection_fd < 0)
         {
-            perror("Cannot bind socket");
+            perror("In accept");
         }
-        if (listen(main_socket, 16) < 0)
-        {
-            perror("Cannot listen socket");
-        }
-        while (1)
-        {
-            fprintf(stdout, "%s", ":::: Waiting for new connection ::::\n");
-            memset(buffer, 0, BUFFER_SIZE);
-            int connection_fd = accept(main_socket, NULL, NULL);
-            if (connection_fd < 0)
-            {
-                perror("In accept");
-            }
-            fprintf(stdout, ":::: Connected ::::\n");
-            int valRead = read(connection_fd, buffer, BUFFER_SIZE);
+        fprintf(stdout, ":::: Connected ::::\n");
+        int valRead = read(connection_fd, buffer, BUFFER_SIZE);
 
-            if (valRead < 0)
-            {
-                perror("Error in reading socket data");
-            }
+        if (valRead < 0)
+        {
+            perror("Error in reading socket data");
         }
     }
+}
