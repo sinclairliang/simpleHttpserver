@@ -22,6 +22,9 @@
 #define HEADER_SIZE 4000  // size for 4Kib;
 #define DEFAULT_PORT 8080
 
+pthread_t threadpool[4];
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 struct node
 {
     struct node *next;
@@ -123,6 +126,16 @@ int receiveFile(int inputFileDescriptor, int outputFileDescriptor, int sizeofFil
     return 0;
 }
 
+void *handlingReq(void *args)
+{
+    while (1)
+    {
+        inputs *globals = (inputs *)args;
+        int *pclient;
+        pthread_mutex_lock(&mutex);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     int numThreads = 4;
@@ -160,6 +173,19 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
     }
+
+    int logFile;
+    if (args.logging == true)
+    {
+        if (open(args.logName, O_WRONLY) != -1)
+        {
+            int file = open(args.logName, O_TRUNC);
+            close(file);
+        }
+        logFile = open(args.logName, O_CREAT | O_WRONLY, 0644);
+        close(logFile);
+    }
+
     hostname = argv[argc - 2];
     port = argv[argc - 1];
     struct addrinfo *addrs, hints = {};
