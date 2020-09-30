@@ -18,6 +18,7 @@
 #include <netdb.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #define BUFFER_SIZE 32768 // size for 32Kib;
 #define HEADER_SIZE 4000  // size for 4Kib;
@@ -25,6 +26,11 @@
 
 pthread_t threadpool[4];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex2 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex3 = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex4 = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
 
 struct node
 {
@@ -220,7 +226,7 @@ int main(int argc, char *argv[])
         int connection_fd = accept(main_socket, NULL, NULL);
         if (connection_fd < 0)
         {
-            perror("In accept");
+            fprintf(stderr, "%s", "In accept");
         }
         fprintf(stdout, ":::: Connected ::::\n");
         int valRead = read(connection_fd, buffer, BUFFER_SIZE);
